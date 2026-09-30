@@ -24,7 +24,7 @@ jobs:
           gradle-version: 8.4
 
       - name: Verify keystore
-        run: ls -la app/src/main/assets/debug.keystore
+        run: ls -la app/src/main/assets/debug.p12
 
       - name: Build Debug APK
         run: gradle assembleDebug --stacktrace
