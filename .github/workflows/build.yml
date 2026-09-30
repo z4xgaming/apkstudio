@@ -23,10 +23,11 @@ jobs:
         with:
           gradle-version: 8.4
 
-      - name: Generate debug keystore
+      - name: Generate debug keystore (JKS format)
         run: |
           mkdir -p app/src/main/assets
           keytool -genkeypair -v \
+            -storetype JKS \
             -keystore app/src/main/assets/debug.keystore \
             -storepass android -alias androiddebugkey -keypass android \
             -keyalg RSA -keysize 2048 -validity 10000 \

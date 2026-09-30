@@ -15,16 +15,26 @@ object ApkSigner {
     fun sign(ctx: Context, inApk: File, outApk: File) {
         val ksFile = File(ctx.filesDir, "debug.keystore")
         if (!ksFile.exists()) {
-            ctx.assets.open("debug.keystore").use { input ->
-                ksFile.outputStream().use { input.copyTo(it) }
+            // Copy from assets
+            try {
+                ctx.assets.open("debug.keystore").use { input ->
+                    ksFile.outputStream().use { input.copyTo(it) }
+                }
+            } catch (e: Exception) {
+                throw Exception("Keystore asset nahi mila: ${e.message}")
             }
         }
-
-        val ks = KeyStore.getInstance("JKS").apply {
-            ksFile.inputStream().use { load(it, PASS.toCharArray()) }
+        if (!ksFile.exists() || ksFile.length() == 0L) {
+            throw Exception("Keystore empty hai")
         }
-        val key = ks.getKey(ALIAS, PASS.toCharArray()) as PrivateKey
-        val cert = ks.getCertificate(ALIAS) as X509Certificate
+
+        // Auto-detect keystore format
+        val ks = loadKeystore(ksFile)
+
+        val key = ks.getKey(ALIAS, PASS.toCharArray()) as? PrivateKey
+            ?: throw Exception("Private key nahi mili (alias: $ALIAS)")
+        val cert = ks.getCertificate(ALIAS) as? X509Certificate
+            ?: throw Exception("Certificate nahi mili")
 
         ApkSigner.Builder(
             listOf(ApkSigner.SignerConfig.Builder(
@@ -35,7 +45,23 @@ object ApkSigner {
             .setOutputApk(outApk)
             .setV1SigningEnabled(true)
             .setV2SigningEnabled(true)
+            .setV3SigningEnabled(true)
             .build()
             .sign()
+    }
+
+    private fun loadKeystore(file: File): KeyStore {
+        val types = listOf("PKCS12", "JKS", "BKS")
+        for (type in types) {
+            try {
+                val ks = KeyStore.getInstance(type)
+                file.inputStream().use { ks.load(it, PASS.toCharArray()) }
+                // Verify key exists
+                if (ks.containsAlias(ALIAS)) return ks
+            } catch (e: Exception) {
+                // Try next type
+            }
+        }
+        throw Exception("Keystore load nahi hui (tried PKCS12/JKS/BKS)")
     }
 }
