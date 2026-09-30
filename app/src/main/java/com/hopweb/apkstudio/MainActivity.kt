@@ -1,14 +1,9 @@
 package com.hopweb.apkstudio
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.Settings
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -16,7 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.hopweb.apkstudio.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
@@ -37,19 +31,12 @@ class MainActivity : AppCompatActivity() {
         res.data?.data?.let { uri -> copyApkToWorkspace(uri) }
     }
 
-    private val permLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        if (result.values.all { it }) pickApkFile()
-        else toast("Permission chahiye!")
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        b.btnPick.setOnClickListener { checkPermAndPick() }
+        b.btnPick.setOnClickListener { pickApkFile() }
         b.btnClone.setOnClickListener { showCloneDialog() }
         b.btnInstall.setOnClickListener { installClonedApk() }
         b.btnShare.setOnClickListener { shareClonedApk() }
@@ -57,34 +44,16 @@ class MainActivity : AppCompatActivity() {
         setStatus("APK select karo clone karne ke liye")
     }
 
-    private fun checkPermAndPick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                try {
-                    startActivity(Intent(
-                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                        Uri.parse("package:$packageName")))
-                } catch (e: Exception) {
-                    startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
-                }
-                return
-            }
-            pickApkFile()
-        } else {
-            val perms = arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-            if (perms.all { ContextCompat.checkSelfPermission(this, it) ==
-                    PackageManager.PERMISSION_GRANTED }) pickApkFile()
-            else permLauncher.launch(perms)
-        }
-    }
-
     private fun pickApkFile() {
+        // SAF - No permission needed!
         val i = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                "application/vnd.android.package-archive",
+                "application/zip",
+                "application/octet-stream"
+            ))
         }
         pickApk.launch(i)
     }
@@ -140,7 +109,6 @@ class MainActivity : AppCompatActivity() {
     private fun showCloneDialog() {
         val src = sourceApk ?: return toast("Pehle APK pick kar")
 
-        // Default suggestions
         val defaultPkg = originalPackage + ".clone"
         val defaultName = originalAppName + " Clone"
 
@@ -156,7 +124,7 @@ class MainActivity : AppCompatActivity() {
         val etPkg = EditText(this).apply { setText(defaultPkg) }
 
         val lbl3 = TextView(this).apply {
-            text = "\n⚠️ Ye original app ke saath install hoga. Fresh data hoga — dobara login karna padega."
+            text = "\n⚠️ Original ke saath install hoga. Fresh data hoga — dobara login karna padega."
             setTextColor(0xFF666666.toInt())
             textSize = 12f
         }
@@ -197,21 +165,17 @@ class MainActivity : AppCompatActivity() {
                 val outApk = File(outDir, "${newAppName.replace(" ", "_")}_clone.apk")
                 if (outApk.exists()) outApk.delete()
 
-                // STEP 1: Extract APK using APKEditor
                 withContext(Dispatchers.Main) { setStatus("Step 1/4: Extract...") }
                 val decodedDir = ApkCloner.extract(src, extractDir)
 
-                // STEP 2: Modify manifest + resources
                 withContext(Dispatchers.Main) { setStatus("Step 2/4: Package ID change...") }
                 ApkCloner.changePackage(decodedDir, originalPackage, newPackage)
 
-                // STEP 3: Repack
                 withContext(Dispatchers.Main) { setStatus("Step 3/4: Repack...") }
                 val unsignedApk = File(workDir, "unsigned.apk")
                 if (unsignedApk.exists()) unsignedApk.delete()
                 ApkCloner.repack(decodedDir, unsignedApk)
 
-                // STEP 4: Sign
                 withContext(Dispatchers.Main) { setStatus("Step 4/4: Sign...") }
                 ApkSigner.sign(this@MainActivity, unsignedApk, outApk)
 
