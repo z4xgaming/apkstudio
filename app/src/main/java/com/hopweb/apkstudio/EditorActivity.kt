@@ -81,12 +81,14 @@ class EditorActivity : AppCompatActivity() {
     private var darkTheme = true
     private fun toggleTheme() {
         darkTheme = !darkTheme
-        if (darkTheme) {
-            b.editor.setBackgroundColor(0xFF1E1E1E.toInt())
-            b.editor.setTextColor(0xFFFFFFFF.toInt())
-        } else {
-            b.editor.setBackgroundColor(0xFFFFFFFF.toInt())
-            b.editor.setTextColor(0xFF000000.toInt())
+        try {
+            if (darkTheme) {
+                b.editor.setBackgroundColor(0xFF1E1E1E.toInt())
+            } else {
+                b.editor.setBackgroundColor(0xFFFFFFFF.toInt())
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Theme: ${if (darkTheme) "Dark" else "Light"}", Toast.LENGTH_SHORT).show()
         }
     }
 }
