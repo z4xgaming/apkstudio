@@ -9,7 +9,8 @@ import java.io.File
 
 class FileAdapter(
     private val items: List<File>,
-    private val onClick: (File) -> Unit
+    private val onClick: (File) -> Unit,
+    private val onLongClick: (File) -> Unit
 ) : RecyclerView.Adapter<FileAdapter.VH>() {
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
@@ -31,6 +32,7 @@ class FileAdapter(
             f.extension == "png" || f.extension == "jpg" -> "[IMG] "
             f.extension == "smali" -> "[SML] "
             f.extension == "arsc" -> "[ARC] "
+            f.extension == "so" -> "[LIB] "
             else -> "[F] "
         }
         val size = if (f.isFile) " (${formatSize(f.length())})" else ""
@@ -38,6 +40,7 @@ class FileAdapter(
         h.tv.setTextColor(0xFFFFFFFF.toInt())
         h.itemView.setBackgroundColor(0xFF0D0D0D.toInt())
         h.itemView.setOnClickListener { onClick(f) }
+        h.itemView.setOnLongClickListener { onLongClick(f); true }
     }
 
     private fun formatSize(bytes: Long): String = when {

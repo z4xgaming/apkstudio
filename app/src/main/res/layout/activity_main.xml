@@ -7,59 +7,89 @@
 
     <LinearLayout
         android:orientation="horizontal"
-        android:padding="8dp"
+        android:padding="6dp"
         android:background="#1E1E1E"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <Button android:id="@+id/btnPick"
-            android:text="Pick APK"
-            android:textColor="#FFF"
+            android:text="Pick"
+            android:textColor="#FFF" android:textSize="12sp"
             android:backgroundTint="#2196F3"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="wrap_content"/>
 
         <Button android:id="@+id/btnRepack"
             android:text="Repack"
-            android:textColor="#FFF"
+            android:textColor="#FFF" android:textSize="12sp"
             android:backgroundTint="#4CAF50"
-            android:layout_marginStart="6dp"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="wrap_content"/>
 
         <Button android:id="@+id/btnInstall"
             android:text="Install"
-            android:textColor="#FFF"
+            android:textColor="#FFF" android:textSize="12sp"
             android:backgroundTint="#FF9800"
-            android:layout_marginStart="6dp"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="wrap_content"/>
     </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:padding="6dp"
+        android:background="#1E1E1E"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button android:id="@+id/btnInfo"
+            android:text="Info"
+            android:textColor="#FFF" android:textSize="12sp"
+            android:backgroundTint="#9C27B0"
+            android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content"/>
+
+        <Button android:id="@+id/btnNewFile"
+            android:text="New File"
+            android:textColor="#FFF" android:textSize="12sp"
+            android:backgroundTint="#00BCD4"
+            android:layout_marginStart="4dp"
+            android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content"/>
+
+        <Button android:id="@+id/btnBack"
+            android:text="Up"
+            android:textColor="#FFF" android:textSize="12sp"
+            android:backgroundTint="#555"
+            android:layout_marginStart="4dp"
+            android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <EditText android:id="@+id/etSearch"
+        android:hint="Search files..."
+        android:textColorHint="#666"
+        android:textColor="#FFF"
+        android:padding="10dp"
+        android:background="#1A1A1A"
+        android:layout_margin="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
     <TextView android:id="@+id/tvStatus"
         android:text="Ready"
         android:textColor="#B0B0B0"
-        android:textSize="12sp"
-        android:padding="8dp"
+        android:textSize="11sp"
+        android:padding="6dp"
         android:background="#1A1A1A"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button android:id="@+id/btnBack"
-        android:text="Parent Folder"
-        android:textColor="#FFF"
-        android:backgroundTint="#555"
-        android:layout_margin="6dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <ProgressBar android:id="@+id/progress"
         android:visibility="gone"
         android:layout_gravity="center"
-        android:layout_margin="12dp"
+        android:layout_margin="8dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
