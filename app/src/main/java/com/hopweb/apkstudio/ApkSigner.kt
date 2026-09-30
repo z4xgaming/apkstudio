@@ -15,23 +15,23 @@ object ApkSigner {
     private const val PASS = "android"
 
     fun sign(ctx: Context, inApk: File, outApk: File) {
-        val ksFile = File(ctx.filesDir, "debug.keystore")
+        val ksFile = File(ctx.filesDir, "debug.p12")
 
-        // Always copy fresh from assets (dont trust cache)
         try {
-            ctx.assets.open("debug.keystore").use { input ->
+            ctx.assets.open("debug.p12").use { input ->
                 ksFile.outputStream().use { input.copyTo(it) }
             }
-            Log.d(TAG, "Keystore copied: ${ksFile.length()} bytes")
         } catch (e: Exception) {
             throw Exception("Asset copy fail: ${e.message}")
         }
 
         if (ksFile.length() < 500) {
-            throw Exception("Keystore too small (corrupt): ${ksFile.length()} bytes")
+            throw Exception("Keystore too small: ${ksFile.length()} bytes")
         }
 
-        val ks = loadKeystore(ksFile)
+        val ks = KeyStore.getInstance("PKCS12").apply {
+            ksFile.inputStream().use { load(it, PASS.toCharArray()) }
+        }
         val key = ks.getKey(ALIAS, PASS.toCharArray()) as? PrivateKey
             ?: throw Exception("Private key nahi mili")
         val cert = ks.getCertificate(ALIAS) as? X509Certificate
@@ -47,23 +47,5 @@ object ApkSigner {
             .setV3SigningEnabled(true)
             .build()
             .sign()
-    }
-
-    private fun loadKeystore(file: File): KeyStore {
-        val errors = StringBuilder()
-        // Try PKCS12 first (best for Android)
-        for (type in listOf("PKCS12", "JKS", "BKS", "AndroidKeyStore")) {
-            try {
-                val ks = KeyStore.getInstance(type)
-                file.inputStream().use { ks.load(it, PASS.toCharArray()) }
-                if (ks.containsAlias(ALIAS)) {
-                    Log.d(TAG, "Loaded keystore type: $type")
-                    return ks
-                }
-            } catch (e: Exception) {
-                errors.append("$type: ${e.message}; ")
-            }
-        }
-        throw Exception("Keystore load fail: $errors")
     }
 }
